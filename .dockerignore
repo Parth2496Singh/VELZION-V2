@@ -1,0 +1,56 @@
+# ====================================================================
+# VELZION DOCKER BUILD FILTER 🐳
+# ====================================================================
+
+# --- Git ---
+.git
+.gitignore
+.github
+
+# --- OS Junk (Keep image sizes as small as possible) ---
+.DS_Store
+Thumbs.db
+
+# --- Node & Frontend ---
+**/node_modules/
+npm-debug.log
+yarn-error.log
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+
+# --- Python & Backend ---
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+backend/venv/
+backend/env/
+backend/db.sqlite3
+
+# --- Environment Variables (CRITICAL) ---
+# Never bake secrets into Docker layers! Pass them at runtime.
+.env
+.env.*
+backend/.env
+frontend/.env
+*.pem
+*.key
+
+# --- Local Databases & Volumes ---
+# Prevents Docker from copying massive local DBs into the build context
+postgres_data/
+n8n_data/
+.n8n/
+backend/.docker-volumes/
+
+# --- Terraform ---
+# Never bake AWS state or dynamic PR workspaces into an image
+backend/terraform/.terraform/
+backend/terraform/*.tfstate
+backend/terraform/*.tfstate.backup
+backend/terraform/.terraform.lock.hcl
+backend/terraform/workspace_pr_*/
+
+# --- Docker Configs ---
+docker-compose.yml
+.dockerignore
