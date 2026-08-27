@@ -18,9 +18,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
-N8N_WEBHOOK_SECRET = os.environ.get('N8N_WEBHOOK_SECRET')
-
+VELZION_WEBHOOK_SECRET = os.environ.get('VELZION_WEBHOOK_SECRET')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -52,12 +50,17 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
 # Optionally add from env
 if 'CORS_ALLOWED_ORIGINS' in os.environ:
-    CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in os.environ['CORS_ALLOWED_ORIGINS'].split(',')])
+    for origin in os.environ['CORS_ALLOWED_ORIGINS'].split(','):
+        origin = origin.strip()
+        if origin:
+            if not origin.startswith('http://') and not origin.startswith('https://'):
+                origin = f'http://{origin}'
+            CSRF_TRUSTED_ORIGINS.append(origin)
 
 # (Keep your GitHub Client IDs below this as they were)
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID')
 GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET')
-N8N_WEBHOOK_SECRET = os.environ.get('N8N_WEBHOOK_SECRET')
+VELZION_WEBHOOK_SECRET = os.environ.get('VELZION_WEBHOOK_SECRET')
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = False
@@ -78,6 +81,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'users',
     'velzard',
+    'zegion',
 ]
 
 MIDDLEWARE = [
