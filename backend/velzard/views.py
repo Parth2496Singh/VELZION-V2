@@ -175,7 +175,7 @@ class ProductionDeploymentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['patch'], permission_classes=[AllowAny])
     def webhook_update(self, request, pk=None):
         secret = request.headers.get('x-velzion-secret')
-        expected_secret = os.environ.get('N8N_WEBHOOK_SECRET', 'L0JFLBRiyyWiCatJeju2IHXOm-yQUFuhSzjflv8q_a8SgeDP9SoKNeRmyE_xyCre5lZ0TpREAdxbK37q84IjfA')
+        expected_secret = os.environ.get('VELZION_WEBHOOK_SECRET', 'L0JFLBRiyyWiCatJeju2IHXOm-yQUFuhSzjflv8q_a8SgeDP9SoKNeRmyE_xyCre5lZ0TpREAdxbK37q84IjfA')
         
         if secret != expected_secret:
             return Response({"error": "Unauthorized webhook signature."}, status=403)
@@ -207,7 +207,7 @@ class ProductionDeploymentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[AllowAny])
     def telemetry(self, request, pk=None):
         secret = request.headers.get('x-velzion-secret')
-        if secret != os.environ.get('N8N_WEBHOOK_SECRET', 'L0JFLBRiyyWiCatJeju2IHXOm-yQUFuhSzjflv8q_a8SgeDP9SoKNeRmyE_xyCre5lZ0TpREAdxbK37q84IjfA'):
+        if secret != os.environ.get('VELZION_WEBHOOK_SECRET', 'L0JFLBRiyyWiCatJeju2IHXOm-yQUFuhSzjflv8q_a8SgeDP9SoKNeRmyE_xyCre5lZ0TpREAdxbK37q84IjfA'):
             return Response({"error": "Unauthorized telemetry source."}, status=403)
 
         deployment = self.get_object()

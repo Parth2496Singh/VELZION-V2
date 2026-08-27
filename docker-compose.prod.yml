@@ -1,16 +1,5 @@
 
 services:
-  # 1. The n8n Orchestrator (Stateless, connected to external DB)
-  n8n:
-    build:
-      context: ./backend
-      dockerfile: n8n.Dockerfile
-    container_name: velzion-n8n-prod
-    restart: unless-stopped
-    ports:
-      - "5678:5678"
-    env_file:
-      - .env
 
   # 2. The Django Control Plane (Stateless, connected to external DB)
   backend:
@@ -31,7 +20,6 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL}
-        - VITE_N8N_WEBHOOK_URL=${VITE_N8N_WEBHOOK_URL}
     container_name: velzion-react-prod
     restart: unless-stopped
     ports:

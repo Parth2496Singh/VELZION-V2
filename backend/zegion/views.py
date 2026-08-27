@@ -101,22 +101,7 @@ class EphemeralEnvironmentViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
 
 
-# --- N8N DYNAMIC LOOKUP ENDPOINT ---
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def lookup_tenant_arn(request):
-    repo_url = request.GET.get('repo_url')
-    if not repo_url:
-        return Response({'error': 'Missing repo_url parameter'}, status=400)
-    
-    project = Project.objects.filter(github_repo_url=repo_url).first()
-    if project:
-        return Response({
-            'client_role_arn': project.aws_role_arn,
-            'status': 'FOUND'
-        }, status=200)
-    else:
-        return Response({'error': 'No integration found for this repository'}, status=404)
+
 
 
 # --- N8N / GITHUB STATE SYNCHRONIZATION WEBHOOK ---
@@ -167,16 +152,9 @@ def github_webhook(request):
         defaults=update_data
     )
     if action_status == 'BUILT':
-        n8n_base = os.environ.get('N8N_INTERNAL_URL', 'http://n8n:5678')
-        try:
-            requests.post(f"{n8n_base}/webhook/zegion-auto-sleep", json={
-                "repo_url": repo_url,
-                "pr_number": pr_number,
-                "instance_id": environment.instance_id
-            }, timeout=5)
-        except Exception as e:
-            # LOUD ERROR LOGGING
-            print(f"❌ CRITICAL: Failed to trigger n8n auto-sleep: {str(e)}")
+        print(f"📡 Zegion environment BUILT for {repo_url} (PR {pr_number})")
+        # In the purely python version, auto-sleep can be handled via celery or 
+        # lambda, removing n8n webhooks.
 
     return Response({
         "message": "State machine synchronized successfully.",
@@ -236,14 +214,8 @@ class GitHubCommentWebhookView(APIView):
             # Transition state machine to prevent duplicate rapid clicks
             env.status = 'WAKING'
             env.save()
-            
-            # Fire to n8n Wake webhook endpoint
-            n8n_base = os.environ.get('N8N_INTERNAL_URL', 'http://n8n:5678')
-            requests.post(f"{n8n_base}/webhook/zegion-chatops-wake", json={
-                "repo_url": repo_url,
-                "pr_number": pr_number,
-                "instance_id": env.instance_id
-            }, timeout=5)
+            print(f"📡 Wake command received for {repo_url} PR {pr_number}")
+            # Python Subprocess to wake instance could go here
 
         # 💤 SLEEP COMMAND GUARDRAILS
         elif comment_body == '/zegion sleep':
@@ -251,12 +223,7 @@ class GitHubCommentWebhookView(APIView):
                 post_to_github_timeline(repo_full_name, pr_number, "⚠️ **Zegion Engine Notice:** This environment is already sleeping. Compute draw is already at $0.00/hr.")
                 return Response({"message": "Command blocked: Already sleeping"}, status=status.HTTP_200_OK)
             
-            # Fire to n8n Sleep webhook endpoint
-            n8n_base = os.environ.get('N8N_INTERNAL_URL', 'http://n8n:5678')
-            requests.post(f"{n8n_base}/webhook/zegion-chatops-sleep", json={
-                "repo_url": repo_url,
-                "pr_number": pr_number,
-                "instance_id": env.instance_id
-            }, timeout=5)
+            print(f"📡 Sleep command received for {repo_url} PR {pr_number}")
+            # Python Subprocess to sleep instance could go here
 
         return Response({"message": f"{comment_body} workflow routed to orchestration plane."}, status=status.HTTP_200_OK)
